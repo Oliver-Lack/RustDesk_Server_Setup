@@ -3,7 +3,9 @@ FROM ubuntu:22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
-ENV RUSTDESK_VERSION=1.2.3
+
+# Build argument for RustDesk version (this will be passed from docker-compose)
+ARG RUSTDESK_VERSION=1.1.14
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -17,12 +19,15 @@ RUN useradd -r -d /opt/rustdesk -s /bin/false rustdesk \
     && mkdir -p /opt/rustdesk/data \
     && mkdir -p /opt/rustdesk/logs
 
-# Download and install RustDesk server
+# Set working directory
 WORKDIR /opt/rustdesk
+
+# Download and install RustDesk server
 RUN wget -O rustdesk-server.zip https://github.com/rustdesk/rustdesk-server/releases/download/${RUSTDESK_VERSION}/rustdesk-server-linux-amd64.zip \
     && unzip rustdesk-server.zip \
-    && rm rustdesk-server.zip \
-    && chmod +x hbbs hbbr \
+    && mv amd64/* . \
+    && rm -rf amd64 rustdesk-server.zip \
+    && chmod +x hbbs hbbr rustdesk-utils \
     && chown -R rustdesk:rustdesk /opt/rustdesk
 
 # Create startup script
