@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  rustdesk-server:
+    build: .
+    container_name: rustdesk-server
+    restart: unless-stopped
+    ports:
+      - "21115:21115"     # hbbs TCP
+      - "21116:21116/tcp" # hbbs TCP
+      - "21116:21116/udp" # hbbs UDP
+      - "21117:21117"     # hbbr TCP
+      - "21118:21118"     # hbbr TCP
+      - "21119:21119"     # hbbr TCP
+    volumes:
+      - ./data:/opt/rustdesk/data
+      - ./logs:/opt/rustdesk/logs
+    environment:
+      - RUSTDESK_RELAY_SERVER=rustdesk-server:21117
+    networks:
+      - rustdesk-net
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "hbbs|hbbr"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  rustdesk-net:
+    driver: bridge
+
+volumes:
+  rustdesk-data:
+  rustdesk-logs:
